@@ -9,14 +9,22 @@ class Horizon:
     ax.get_yaxis().set_visible(False)
     ax.get_xaxis().set_visible(False)
     
-  def run(self, x, y, labels):
+  def adjust_visuals_line(self, x, df, ax, i):
+    plt.xlim(0,x[-1])
+    plt.ylim(0,df.get_max()/3)
+    self.set_theme(ax)
+    ax.get_yaxis().set_visible(True)
+    ax.set_yticks([])
+    ax.set_ylabel(labels[i], rotation="horizontal")
+    
+  def run(self, x, y, labels, figsize=(20,3)):
     n = len(y)
 
-    F = plt.figure(figsize=(20,3))
+    F = plt.figure(figsize=figsize)
     F.clf()
     F.subplots_adjust(hspace=0) 
 
-    colors = ("#A90E0A","#E02421","#EF9483","#0050A0","#2B7ABD","#8BBCD4")
+    colors = ("#0050A0","#2B7ABD","#8BBCD4","#A90E0A","#E02421","#EF9483")
 
     df = DataTransformer(y)
 
@@ -37,12 +45,7 @@ class Horizon:
         #x = [5,6,7,8,9]
         #ax.bar(x,band,color=colors[l - 1 - idx],width=0.05,lw=0)
 
-      plt.xlim(0,x[-1])
-      plt.ylim(0,df.get_max()/3)
-      self.set_theme(ax)
-      ax.get_yaxis().set_visible(True)
-      ax.set_yticks([])
-      ax.set_ylabel(labels[i],rotation="horizontal")
+      self.adjust_visuals_line(x,df,ax, i)
 
     return plt
 
