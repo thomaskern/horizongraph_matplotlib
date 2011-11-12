@@ -2,11 +2,11 @@ import numpy as np
 
 class DataTransformer:
 
-  def __init__(self, all_data):
+  def __init__(self, all_data, bands):
     self.min = 0
     self.max = 0
 
-    self.num_band = 3
+    self.num_band = bands
     self.band = 0
     self.set_data(all_data)
   
@@ -22,7 +22,6 @@ class DataTransformer:
       self.max= self.min * -1
 
     self.band = self.max / self.num_band 
-    print(str(self.band)+":: min: "+str(self.min)+" max:" + str(self.max))
 
   def get_max(self):
     return(self.max)
@@ -40,6 +39,23 @@ class DataTransformer:
     y = list(np.random.random_integers(-9,y_max,len(x)))
     return x,y
 
+  def crossover(self, idx, x, one_step, y, m):
+    if len(y) > idx + 1 and m(y[idx+1], 0):
+        return True,x[idx] + one_step/2.0
+    else:
+      return False, 0
+
+  def larger(self, a, b):
+    return a > b
+
+  def smaller(self, a, b):
+    return a < b
+
+  def crossover2(self, idx, x, one_step, b, x_neu,y, m):
+    if idx > 0 and m(y[idx - 1], 0):
+       x_neu.append(x[idx] - one_step/2.0)
+       b.append(0)
+    
   def transform(self, y,x):
     ret = []
     x1 = []
@@ -58,27 +74,17 @@ class DataTransformer:
             top = self.max - i * self.band
             bottom = self.max - (i+1) * self.band
             z = self.transform_number(y1, top , bottom)
-            if y1 == 1:
-              print(str(top)+"::"+str(bottom)+"::"+str(z)+"::"+str(y1)+"::"+str(len(b)))
 
-            if idx > 0 and y[idx - 1] < 0:
-               x_neu.append(x[idx] - one_step/2.0)
-               b.append(0)
-            if len(y) > idx + 1:
-              if y[idx+1] < 0:
-                new_x = True
-                new_x_value = x[idx] + one_step/2.0
+            self.crossover2(idx, x, one_step, b, x_neu, y, self.smaller)
+            new_x, new_x_value = self.crossover(idx, x, one_step,y, self.smaller)
         else:
           if y1 < 0:
             top = (i-self.num_band+1) * self.band
             bottom = (i-self.num_band) * self.band
             z = self.transform_number(-1 * y1, top, bottom)
-            if len(y) > idx + 1 and y[idx+1] > 0:
-                new_x = True
-                new_x_value = x[idx] + one_step/2.0
-            if idx > 0 and y[idx - 1] > 0:
-               x_neu.append(x[idx] - one_step/2.0)
-               b.append(0)
+
+            self.crossover2(idx, x, one_step, b, x_neu, y, self.larger)
+            new_x, new_x_value = self.crossover(idx, x, one_step,y, self.larger)
 
         b.append(z)
         x_neu.append(x[idx])
@@ -95,5 +101,4 @@ class DataTransformer:
 
     ret.reverse()
     x1.reverse()
-    #print(ret)
     return x1,ret

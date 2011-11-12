@@ -4,7 +4,7 @@ from data_transformer import DataTransformer
 class DataTransformerTest(unittest.TestCase):
   
   def setUp(self):
-    self.d = DataTransformer([[9,-9,0]])
+    self.d = DataTransformer([[9,-9,0]], 3)
     self.common_x_ret = [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3],[1,2,3]]
 
     

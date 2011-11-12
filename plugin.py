@@ -3,6 +3,12 @@ from matplotlib.backends.backend_pdf import PdfPages
 from data_transformer import DataTransformer
 from data_loader import DataLoader
 
+class InputError(Exception):
+  def __init__(self, value):
+    self.value = value
+  def __str__(self):
+    return rep(self.value)
+
 class Horizon:
 
   def set_theme(self,ax):
@@ -17,16 +23,21 @@ class Horizon:
     ax.set_yticks([])
     ax.set_ylabel(labels[i], rotation="horizontal")
     
-  def run(self, x, y, labels, figsize=(20,3)):
+  def check_valid_params(self, x,y,labels, figsize, bands, colors):
+    if bands * 2 != len(colors):
+      raise InputError("Number of bands invalid for number of colors")
+    pass
+
+  def run(self, x, y, labels, figsize=(20,3), bands=2, colors=("#0050A0","#2B7ABD","#8BBCD4","#A90E0A","#E02421","#EF9483")):
+
+    self.check_valid_params(x,y,labels,figsize,bands,colors) 
     n = len(y)
 
     F = plt.figure(figsize=figsize)
     F.clf()
     F.subplots_adjust(hspace=0) 
 
-    colors = ("#0050A0","#2B7ABD","#8BBCD4","#A90E0A","#E02421","#EF9483")
-
-    df = DataTransformer(y)
+    df = DataTransformer(y, bands)
 
     for i in range(n):
       ax = F.add_subplot(n, 1, i+1)
@@ -51,9 +62,13 @@ class Horizon:
 
 if __name__ == "__main__":
   x,y,labels = DataLoader().get_data()
-  plot = Horizon().run(x,y,labels)
-  plot.subplots_adjust(left=0.07, right=0.998, top=0.99,bottom=0.01)
-  pp = PdfPages('multipage.pdf')
-  plot.savefig(pp, format="pdf")
-  pp.close()
+  #plot = Horizon().run(x,y,labels,colors=("#0050A0","#8BBCD4","#A90E0A","#EF9483"))
+  try:
+    plot = Horizon().run(x,y,labels, bands=3)
+    plot.subplots_adjust(left=0.07, right=0.998, top=0.99,bottom=0.01)
+    pp = PdfPages('multipage.pdf')
+    plot.savefig(pp, format="pdf")
+    pp.close()
+  except InputError as e:
+    print "Exception thrown. Reason: ", e.value
   
