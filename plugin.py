@@ -28,7 +28,7 @@ class Horizon:
       raise InputError("Number of bands invalid for number of colors")
     pass
 
-  def run(self, x, y, labels, figsize=(20,3), bands=2, colors=("#0050A0","#2B7ABD","#8BBCD4","#A90E0A","#E02421","#EF9483")):
+  def run(self, x, y, labels, figsize=(20,3), bands=2, colors=("#8BBCD4","#2B7ABD","#0050A0","#EF9483","#E02421", "#A90E0A")): # dark blue, medium blue, light blue, dark red, medium red, light red
 
     self.check_valid_params(x,y,labels,figsize,bands,colors) 
     n = len(y)
@@ -51,7 +51,7 @@ class Horizon:
         #print(str(x1[idx])+"::"+str(band)+"::"+str(idx))
         l = len(bands)
 
-        ax.fill_between(x1[idx],0,band,color=colors[l - 1 - idx])
+        ax.fill_between(x1[idx],0,band,color=colors[idx])
         #print filling.get_dashes()
         #x = [5,6,7,8,9]
         #ax.bar(x,band,color=colors[l - 1 - idx],width=0.05,lw=0)
