@@ -24,7 +24,7 @@ class DataTransformer:
 
     self.band = self.max / self.num_band 
     
-  def transform(self, y,x):
+  def transform(self, y, x):
     ret = []
     x1 = []
     one_step = x[1] - x[0]
@@ -40,13 +40,13 @@ class DataTransformer:
         if self.is_still_positive(i): 
           if y1 > 0:
             z = self.calculate_new_y_value(i, y1)
-            self.crossover2(idx, x, one_step, b, x_new, y, self.smaller)
-            has_crossover, new_x_value = self.crossover(idx, x, one_step,y, self.smaller)
+            self.crossover_beginning(idx, x, one_step, b, x_new, y, self.smaller)
+            has_crossover, new_x_value = self.crossover_ending(idx, x, one_step,y, self.smaller)
         else:
           if y1 < 0:
             z = self.calculate_new_y_value(i, abs(y1))
-            self.crossover2(idx, x, one_step, b, x_new, y, self.larger)
-            has_crossover, new_x_value = self.crossover(idx, x, one_step,y, self.larger)
+            self.crossover_beginning(idx, x, one_step, b, x_new, y, self.larger)
+            has_crossover, new_x_value = self.crossover_ending(idx, x, one_step,y, self.larger)
 
         b.append(z)
         x_new.append(x[idx])
@@ -71,12 +71,7 @@ class DataTransformer:
       z = self.band
     return(z)
 
-  def generate_random_x_y(self,y_max=9):
-    x = np.arange(0, 2, 0.05)
-    y = list(np.random.random_integers(-9,y_max,len(x)))
-    return x,y
-
-  def crossover(self, idx, x, one_step, y, m):
+  def crossover_ending(self, idx, x, one_step, y, m):
     if len(y) > idx + 1 and m(y[idx+1], 0):
         return True,x[idx] + one_step/2.0
     else:
@@ -88,7 +83,7 @@ class DataTransformer:
   def smaller(self, a, b):
     return a < b
 
-  def crossover2(self, idx, x, one_step, b, x_new,y, m):
+  def crossover_beginning(self, idx, x, one_step, b, x_new,y, m):
     if idx > 0 and m(y[idx - 1], 0):
        x_new.append(x[idx] - one_step/2.0)
        b.append(0)
