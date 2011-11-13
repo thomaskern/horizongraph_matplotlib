@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 from data_transformer import DataTransformer
-from data_loader import DataLoader
 
 class InputError(Exception):
   def __init__(self, value):
@@ -11,11 +9,59 @@ class InputError(Exception):
 
 class Horizon:
 
+  # public methods
+
+  def run(self, x, y, labels, figsize=(20,3), bands=3, colors=("#8BBCD4","#2B7ABD","#0050A0","#EF9483","#E02421", "#A90E0A")): # dark blue, medium blue, light blue, dark red, medium red, light red
+    """ Return the entire graph and its plt object
+
+        Look at DataTransformer.transform to see how the data is transformed.
+
+        Keyword arguments:
+        x: single array with x values. Distance between neighboring entries have to be the same
+        y: two-dimansional array with y values for each entry. 
+        labels: array with strings, shown as the labels on the y-axis.
+        figsize: (a,b) used when creating the figure (optional)
+        bands: default is 3
+        colors: array with the colors used for the bands. from dark to light blue, then from dark red to light red.
+
+        Requirements:
+        len(y[i]) == len(x) for all 0 <= i < len(y)
+        len(y[0]) == len(labels)
+        len(colors) == 2*bands
+
+        RETURN: plt object
+    """
+
+    self.check_valid_params(x,y,labels,figsize,bands,colors) 
+    n = len(y)
+
+    F = self.create_figure(figsize) 
+    df = DataTransformer(y, bands)
+
+    for i in range(n):
+      ax = F.add_subplot(n, 1, i+1)
+      transformed_x, bands = df.transform(y[i], x)
+
+      for idx,band in enumerate(bands):
+        ax.fill_between(transformed_x[idx],0,band,color=colors[idx])
+
+      self.adjust_visuals_line(x, df, ax, i, labels)
+
+    return plt
+
+  # private methods
+  def create_figure(self, figsize):
+    F = plt.figure(figsize=figsize)
+    F.clf()
+    return F
+
   def set_theme(self,ax):
+    """ hides all ticks and labels on both axes """
     ax.get_yaxis().set_visible(False)
     ax.get_xaxis().set_visible(False)
     
-  def adjust_visuals_line(self, x, df, ax, i):
+  def adjust_visuals_line(self, x, df, ax, i, labels):
+    """ adjusts the subplot: height, width, labels """
     plt.xlim(0,x[-1])
     plt.ylim(0,df.get_max()/3)
     self.set_theme(ax)
@@ -24,51 +70,14 @@ class Horizon:
     ax.set_ylabel(labels[i], rotation="horizontal")
     
   def check_valid_params(self, x,y,labels, figsize, bands, colors):
+    """ checks parameters, throws an InputError if parameters are invalid """
+
     if bands * 2 != len(colors):
       raise InputError("Number of bands invalid for number of colors")
-    pass
 
-  def run(self, x, y, labels, figsize=(20,3), bands=2, colors=("#8BBCD4","#2B7ABD","#0050A0","#EF9483","#E02421", "#A90E0A")): # dark blue, medium blue, light blue, dark red, medium red, light red
+    if len(y) != len(labels):
+      raise InputError("Lengths of arrays y and labels are different")
 
-    self.check_valid_params(x,y,labels,figsize,bands,colors) 
-    n = len(y)
-
-    F = plt.figure(figsize=figsize)
-    F.clf()
-    F.subplots_adjust(hspace=0) 
-
-    df = DataTransformer(y, bands)
-
-    for i in range(n):
-      ax = F.add_subplot(n, 1, i+1)
-
-      x1, bands = df.transform(y[i], x)
-      #print(x1)
-      #print bands
-
-      for idx,band in enumerate(bands):
-
-        #print(str(x1[idx])+"::"+str(band)+"::"+str(idx))
-        l = len(bands)
-
-        ax.fill_between(x1[idx],0,band,color=colors[idx])
-        #print filling.get_dashes()
-        #x = [5,6,7,8,9]
-        #ax.bar(x,band,color=colors[l - 1 - idx],width=0.05,lw=0)
-
-      self.adjust_visuals_line(x,df,ax, i)
-
-    return plt
-
-if __name__ == "__main__":
-  x,y,labels = DataLoader().get_data()
-  #plot = Horizon().run(x,y,labels,colors=("#0050A0","#8BBCD4","#A90E0A","#EF9483"))
-  try:
-    plot = Horizon().run(x,y,labels, bands=3)
-    plot.subplots_adjust(left=0.07, right=0.998, top=0.99,bottom=0.01)
-    pp = PdfPages('multipage.pdf')
-    plot.savefig(pp, format="pdf")
-    pp.close()
-  except InputError as e:
-    print "Exception thrown. Reason: ", e.value
-  
+    for i in y:
+      if len(x) != len(i):
+        raise InputError("Lengths of arrays x and y are different")
